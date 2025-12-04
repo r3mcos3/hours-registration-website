@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urenregistratie & Rapportage</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="background-clock">
+        <div class="clock-ring ring-1"></div>
+        <div class="clock-ring ring-2"></div>
+        <div class="clock-ring ring-3"></div>
+        <div class="clock-center"></div>
+        <div class="clock-hand hour"></div>
+        <div class="clock-hand minute"></div>
+        <div class="clock-hand second"></div>
+    </div>
+
+    <main class="container">
+        <header class="header">
+            <h1>Urenregistratie</h1>
+            <p class="subtitle">Beheer je tijd in stijl</p>
+        </header>
+
+        <div class="grid-layout">
+            <!-- Registration Card -->
+            <section class="card glass-panel">
+                <div class="card-header">
+                    <h2>Nieuwe Registratie</h2>
+                    <p>Voer je gewerkte uren in voor vandaag</p>
+                </div>
+                <form id="hoursForm" class="form-group">
+                    <div class="input-group">
+                        <label for="date">Datum <span class="required">*</span></label>
+                        <input type="text" id="date" name="date" placeholder="dd-mm-jjjj" required>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="weekNumber">Weeknummer</label>
+                            <input type="number" id="weekNumber" name="weekNumber" placeholder="Auto" readonly>
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="startTime">Starttijd <span class="required">*</span></label>
+                            <input type="text" id="startTime" name="startTime" placeholder="09:00"
+                                pattern="[0-9]{2}:[0-9]{2}" title="Tijd in formaat UU:MM (bijv. 09:00)" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="endTime">Eindtijd <span class="required">*</span></label>
+                            <input type="text" id="endTime" name="endTime" placeholder="17:00"
+                                pattern="[0-9]{2}:[0-9]{2}" title="Tijd in formaat UU:MM (bijv. 17:00)" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="pause">Pauze (minuten)</label>
+                        <input type="number" id="pause" name="pause" placeholder="0" min="0">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="notes">Notities</label>
+                        <textarea id="notes" name="notes" placeholder="Bijv. Project X afgerond..." rows="2"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="btn-text">Registreren</span>
+                        <div class="loader hidden"></div>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Actions Card -->
+            <section class="card glass-panel small-card">
+                <div class="card-header">
+                    <h2>Weekrapportage</h2>
+                    <p>Verstuur het overzicht van deze week</p>
+                </div>
+                <div class="action-content">
+                    <div class="status-indicator">
+                        <span class="label">Huidige week:</span>
+                        <span class="value" id="currentWeekDisplay">--</span>
+                        <span class="week-range" id="weekDateRange">... - ...</span>
+                    </div>
+
+                    <div class="reminder-box">
+                        <p class="reminder-title">Checklist voor verzending:</p>
+                        <ul class="reminder-list">
+                            <li><span>📅</span> Alle dagen compleet?</li>
+                            <li><span>☕</span> Pauzes correct verwerkt?</li>
+                            <li><span>📧</span> Klaar om te versturen?</li>
+                        </ul>
+                    </div>
+
+                    <button id="sendReportBtn" class="btn-secondary">
+                        <span class="icon">📧</span>
+                        Verstuur Mail
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="toast" class="toast hidden">
+        <span id="toastMessage">Succesvol opgeslagen!</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
