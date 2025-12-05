@@ -1,7 +1,3 @@
-# Helper tools (don't deploy these to production)
-password-hasher.html
-webhook-encrypter.html
-
 # IDE and editor files
 .vscode/
 .idea/

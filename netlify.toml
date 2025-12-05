@@ -49,6 +49,19 @@
   status = 301
   force = true
 
+# Block access to helper tools (only for development, not public)
+[[redirects]]
+  from = "/password-hasher.html"
+  to = "/login.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/webhook-encrypter.html"
+  to = "/login.html"
+  status = 404
+  force = true
+
 # Redirect root to login page
 [[redirects]]
   from = "/"

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Encrypter - Lokale Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #17a2b8;
+            color: #0c5460;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: monospace;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #11998e;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        button {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(17, 153, 142, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #28a745;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .output-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .output-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .output-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .output-value {
+            background: white;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            border: 1px solid #ddd;
+        }
+
+        .copy-btn {
+            background: #28a745;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .success-msg {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-keyword {
+            color: #c678dd;
+        }
+
+        .code-string {
+            color: #98c379;
+        }
+
+        .code-comment {
+            color: #5c6370;
+        }
+
+        .random-key-btn {
+            background: #6c757d;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            width: auto;
+            display: inline-block;
+        }
+
+        .random-key-btn:hover {
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Webhook URL Encrypter</h1>
+        <p class="subtitle">Versleutel je n8n webhook URLs veilig</p>
+
+        <div class="warning">
+            ⚠️ Deze tool werkt 100% lokaal in je browser. Je webhook URLs worden NOOIT naar het internet gestuurd.
+        </div>
+
+        <div class="input-group">
+            <label for="encryptionKey">1. Kies een Encryption Key (willekeurige string):</label>
+            <input type="text" id="encryptionKey" placeholder="bijv: mijn-super-geheime-sleutel-xyz789">
+            <button class="random-key-btn" onclick="generateRandomKey()">🎲 Genereer Willekeurige Key</button>
+        </div>
+
+        <div class="input-group">
+            <label for="registrationWebhook">2. Plak je REGISTRATION Webhook URL:</label>
+            <input type="text" id="registrationWebhook" placeholder="https://n8n.example.com/webhook/hours-registration">
+        </div>
+
+        <div class="input-group">
+            <label for="reportWebhook">3. Plak je REPORT Webhook URL:</label>
+            <input type="text" id="reportWebhook" placeholder="https://n8n.example.com/webhook/send-weekly-report">
+        </div>
+
+        <button onclick="encryptWebhooks()">🔒 Versleutel Webhooks</button>
+
+        <div class="result" id="result">
+            <h3 style="margin-bottom: 1rem; color: #28a745;">✅ Versleuteling Voltooid!</h3>
+
+            <div class="output-item">
+                <div class="output-label">ENCRYPTION_KEY:</div>
+                <div class="output-value" id="keyOutput"></div>
+                <button class="copy-btn" onclick="copyToClipboard('keyOutput', 'keySuccess')">📋 Kopieer</button>
+                <div class="success-msg" id="keySuccess">✅ Gekopieerd!</div>
+            </div>
+
+            <div class="output-item">
+                <div class="output-label">REGISTRATION_WEBHOOK_ENC:</div>
+                <div class="output-value" id="regOutput"></div>
+                <button class="copy-btn" onclick="copyToClipboard('regOutput', 'regSuccess')">📋 Kopieer</button>
+                <div class="success-msg" id="regSuccess">✅ Gekopieerd!</div>
+            </div>
+
+            <div class="output-item">
+                <div class="output-label">REPORT_WEBHOOK_ENC:</div>
+                <div class="output-value" id="repOutput"></div>
+                <button class="copy-btn" onclick="copyToClipboard('repOutput', 'repSuccess')">📋 Kopieer</button>
+                <div class="success-msg" id="repSuccess">✅ Gekopieerd!</div>
+            </div>
+
+            <div class="info" style="margin-top: 1.5rem; margin-bottom: 0;">
+                <strong>Volgende stappen:</strong><br>
+                1. Open <code>script.js</code> in een teksteditor<br>
+                2. Zoek naar de <code>CONFIG</code> sectie (bovenaan het bestand)<br>
+                3. Vervang de volgende waarden met de outputs hierboven:<br>
+                <div class="code-block">
+<span class="code-keyword">const</span> CONFIG = {
+    ENCRYPTION_KEY: <span class="code-string">'[plak ENCRYPTION_KEY hier]'</span>,
+    REGISTRATION_WEBHOOK_ENC: <span class="code-string">'[plak REGISTRATION_WEBHOOK_ENC hier]'</span>,
+    REPORT_WEBHOOK_ENC: <span class="code-string">'[plak REPORT_WEBHOOK_ENC hier]'</span>
+};
+                </div>
+                4. Sla <code>script.js</code> op
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generateRandomKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+            let key = '';
+            for (let i = 0; i < 32; i++) {
+                key += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('encryptionKey').value = key;
+        }
+
+        function encryptString(str, key) {
+            let encrypted = '';
+            for (let i = 0; i < str.length; i++) {
+                encrypted += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+            }
+            return btoa(encrypted);
+        }
+
+        function encryptWebhooks() {
+            const key = document.getElementById('encryptionKey').value.trim();
+            const regWebhook = document.getElementById('registrationWebhook').value.trim();
+            const repWebhook = document.getElementById('reportWebhook').value.trim();
+
+            // Validation
+            if (!key) {
+                alert('Voer een encryption key in!');
+                return;
+            }
+
+            if (key.length < 16) {
+                if (!confirm('Je encryption key is korter dan 16 karakters. Dit is minder veilig. Doorgaan?')) {
+                    return;
+                }
+            }
+
+            if (!regWebhook || !regWebhook.startsWith('http')) {
+                alert('Voer een geldige registration webhook URL in (moet beginnen met http)!');
+                return;
+            }
+
+            if (!repWebhook || !repWebhook.startsWith('http')) {
+                alert('Voer een geldige report webhook URL in (moet beginnen met http)!');
+                return;
+            }
+
+            // Encrypt
+            const encryptedReg = encryptString(regWebhook, key);
+            const encryptedRep = encryptString(repWebhook, key);
+
+            // Display results
+            document.getElementById('keyOutput').textContent = key;
+            document.getElementById('regOutput').textContent = encryptedReg;
+            document.getElementById('repOutput').textContent = encryptedRep;
+
+            document.getElementById('result').classList.add('show');
+
+            // Scroll to result
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        async function copyToClipboard(elementId, successId) {
+            const text = document.getElementById(elementId).textContent;
+            const successMsg = document.getElementById(successId);
+
+            try {
+                await navigator.clipboard.writeText(text);
+                successMsg.classList.add('show');
+                setTimeout(() => {
+                    successMsg.classList.remove('show');
+                }, 2000);
+            } catch (err) {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                successMsg.classList.add('show');
+                setTimeout(() => {
+                    successMsg.classList.remove('show');
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
