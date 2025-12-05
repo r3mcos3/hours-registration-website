@@ -2,41 +2,73 @@
 
 This website is designed to work with n8n for registering hours and sending weekly reports.
 
-## Installation & Configuration
+## Security Features
 
-1. **Set up Webhooks in n8n**:
-   - Open your n8n workflow.
-   - **Registration**: Replace the `Form Trigger` node (or add one) with a `Webhook` node.
-     - Method: `POST`
-     - Path: `hours-registration` (or similar)
-     - Ensure the webhook responds with a 200 OK.
-   - **Reporting**: Replace the `Schedule Trigger` node (or add one) with a `Webhook` node.
-     - Method: `POST` (or `GET`)
-     - Path: `send-weekly-report`
+✅ **Login beveiliging** - Wachtwoordbeveiliging voor toegang
+✅ **Versleutelde webhooks** - Webhook URLs zijn encrypted in de code
+✅ **Input validatie** - Alle gebruikersinput wordt gevalideerd en gesanitized
+✅ **Session management** - Automatische uitlog na 24 uur
+✅ **Subresource Integrity** - Externe scripts zijn beschermd
 
-2. **Configure URLs**:
-   - Open `script.js` in this directory.
-   - Locate the `CONFIG` section at the top of the file.
-   - Replace `YOUR_REGISTRATION_WEBHOOK_URL_HERE` with the production URL of your registration webhook.
-   - Replace `YOUR_REPORT_WEBHOOK_URL_HERE` with the production URL of your reporting webhook.
+⚠️ **BELANGRIJK**: Lees [SECURITY.md](SECURITY.md) voor complete configuratie-instructies!
 
-   Example:
-   ```javascript
-   const CONFIG = {
-       REGISTRATION_WEBHOOK: 'https://n8n.yourdomain.com/webhook/hours-registration',
-       REPORT_WEBHOOK: 'https://n8n.yourdomain.com/webhook/send-weekly-report'
-   };
-   ```
+## Quick Start
 
-3. **Usage**:
-   - Open `index.html` in your browser.
-   - Fill in your hours and click "Register".
-   - Click "Send Email" to generate the weekly report.
+### 1. Configureer Beveiliging
 
-## Structure
-- `index.html`: The main structure of the page.
-- `style.css`: All styling (Glassmorphism, animations, responsive design).
-- `script.js`: Logic for the form and API calls to n8n.
+**a) Stel je wachtwoord in:**
+1. Ga naar: https://emn178.github.io/online-tools/sha256.html
+2. Genereer een SHA-256 hash van je wachtwoord
+3. Open `login.html` en vervang `YOUR_PASSWORD_HASH_HERE` met je hash
+
+**b) Versleutel je webhook URLs:**
+1. Open `script.js` en stel een `ENCRYPTION_KEY` in
+2. Open `index.html` in je browser en open de console (F12)
+3. Voer uit: `encryptWebhookHelper('je-webhook-url', 'je-encryption-key')`
+4. Kopieer de output naar `script.js`
+
+Zie [SECURITY.md](SECURITY.md) voor gedetailleerde instructies.
+
+### 2. Configureer n8n Webhooks
+
+1. **Registration Webhook**:
+   - Method: `POST`
+   - Path: `hours-registration`
+   - Return: 200 OK
+
+2. **Report Webhook**:
+   - Method: `POST`
+   - Path: `send-weekly-report`
+   - Return: 200 OK
+
+### 3. Gebruik
+
+1. Open `login.html` in je browser
+2. Log in met je wachtwoord
+3. Registreer je uren
+4. Verstuur wekelijkse rapporten
+
+## File Structure
+
+- `login.html`: Login pagina met wachtwoordbeveiliging
+- `index.html`: Hoofdpagina voor urenregistratie
+- `auth.js`: Authenticatie en session management
+- `script.js`: Formulier logica en API calls naar n8n
+- `style.css`: Styling (Glassmorphism, animaties, responsive design)
+- `SECURITY.md`: Gedetailleerde beveiligingsconfiguratie
+- `README.md`: Deze documentatie
+
+## Aanbevolen Extra Beveiligingsmaatregelen
+
+Voor productiegebruik raden we aan:
+
+1. **HTTPS verplicht** - Host altijd via HTTPS
+2. **CSP Headers** - Configureer Content Security Policy headers
+3. **n8n authenticatie** - Voeg header authentication toe aan je n8n webhooks
+4. **Rate limiting** - Beperk aantal requests per IP
+5. **Backup** - Maak regelmatig backups van je n8n data
+
+Zie [SECURITY.md](SECURITY.md) voor implementatie details.
 
 ## Screenshots
 

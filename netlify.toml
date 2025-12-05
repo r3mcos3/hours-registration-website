@@ -1,0 +1,78 @@
+# Netlify Configuration for Hours Registration Website
+# This file configures security headers, redirects, and build settings
+
+[build]
+  # Publish directory (the root of your site)
+  publish = "."
+
+  # No build command needed for static sites
+  command = ""
+
+# Security Headers
+[[headers]]
+  # Apply these headers to all pages
+  for = "/*"
+
+  [headers.values]
+    # Content Security Policy - Controls which resources can be loaded
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://npmcdn.com;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://n8n.srv1073353.hstgr.cloud;
+      img-src 'self' data:;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+    # Prevent MIME type sniffing
+    X-Content-Type-Options = "nosniff"
+
+    # Prevent clickjacking attacks
+    X-Frame-Options = "DENY"
+
+    # Enable XSS protection in older browsers
+    X-XSS-Protection = "1; mode=block"
+
+    # Control referrer information
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Permissions Policy - Disable unnecessary browser features
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(), payment=(), usb=(), bluetooth=()"
+
+# Force HTTPS redirect
+[[redirects]]
+  from = "http://*"
+  to = "https://:splat"
+  status = 301
+  force = true
+
+# Redirect root to login page
+[[redirects]]
+  from = "/"
+  to = "/login.html"
+  status = 200
+
+# Custom 404 page (optional - redirects to login)
+[[redirects]]
+  from = "/*"
+  to = "/login.html"
+  status = 404
+
+# Headers for static assets (caching)
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

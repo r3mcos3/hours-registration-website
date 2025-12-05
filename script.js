@@ -1,12 +1,43 @@
 // CONFIGURATION
-// Replace these URLs with your actual n8n Webhook URLs
-const CONFIG = {
-    // Webhook for registering hours (Method: POST)
-    REGISTRATION_WEBHOOK: 'YOUR_REGISTRATION_WEBHOOK_URL_HERE',
+// For security, webhook URLs are encrypted
+// To configure:
+// 1. Go to the helper tool at the end of this file (searchfor "CONFIGURATION HELPER")
+// 2. Follow the instructions to encrypt your webhook URLs
+// 3. Replace the encrypted values below
 
-    // Webhook for triggering the weekly report email (Method: POST or GET)
-    REPORT_WEBHOOK: 'YOUR_REPORT_WEBHOOK_URL_HERE'
+const CONFIG = {
+    // Your encryption key (change this to a random string)
+    ENCRYPTION_KEY: '87BFpGKAp_bvZdLNf4x3HqCM8S5ybgoR',
+
+    // Encrypted webhook URLs (use the helper tool to generate these)
+    REGISTRATION_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TQMoASI=',
+    REPORT_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRs7DSA='
 };
+
+// Decrypt webhook URLs
+function decryptWebhook(encrypted, key) {
+    if (!encrypted || encrypted.includes('YOUR_')) {
+        throw new Error('Please configure the encrypted webhook URLs');
+    }
+    try {
+        const bytes = atob(encrypted);
+        let decrypted = '';
+        for (let i = 0; i < bytes.length; i++) {
+            decrypted += String.fromCharCode(bytes.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+        }
+        return decrypted;
+    } catch (error) {
+        throw new Error('Failed to decrypt webhook URL. Please check your configuration.');
+    }
+}
+
+// Get decrypted webhooks
+function getWebhooks() {
+    return {
+        registration: decryptWebhook(CONFIG.REGISTRATION_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY),
+        report: decryptWebhook(CONFIG.REPORT_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY)
+    };
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeForm();
@@ -88,6 +119,42 @@ function setupEventListeners() {
     reportBtn.addEventListener('click', handleReportSending);
 }
 
+// Input sanitization function
+function sanitizeInput(input, type = 'text') {
+    if (!input) return '';
+
+    let sanitized = String(input).trim();
+
+    // Remove control characters
+    sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
+
+    if (type === 'text') {
+        // Escape HTML characters
+        const div = document.createElement('div');
+        div.textContent = sanitized;
+        sanitized = div.innerHTML;
+
+        // Limit length
+        sanitized = sanitized.substring(0, 500);
+    } else if (type === 'number') {
+        // Ensure it's a valid number
+        const num = parseInt(sanitized);
+        return isNaN(num) ? 0 : num;
+    } else if (type === 'time') {
+        // Validate time format HH:MM
+        if (!/^[0-2][0-9]:[0-5][0-9]$/.test(sanitized)) {
+            throw new Error('Invalid time format');
+        }
+    } else if (type === 'date') {
+        // Validate date format YYYY-MM-DD
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(sanitized)) {
+            throw new Error('Invalid date format');
+        }
+    }
+
+    return sanitized;
+}
+
 async function handleRegistration(formData) {
     const submitBtn = document.getElementById('submitBtn');
     const btnText = submitBtn.querySelector('.btn-text');
@@ -98,26 +165,39 @@ async function handleRegistration(formData) {
     btnText.classList.add('hidden');
     loader.classList.remove('hidden');
 
-    // Parse the date from dd-mm-yyyy to yyyy-mm-dd for backend consistency
-    const dateStr = formData.get('date');
-    const [day, month, year] = dateStr.split('-');
-    const isoDate = `${year}-${month}-${day}`;
-
-    const data = {
-        'Date': isoDate,
-        'Week Number': parseInt(formData.get('weekNumber')),
-        'Start Time': formData.get('startTime'),
-        'End Time': formData.get('endTime'),
-        'Break in minutes': parseInt(formData.get('pause')) || 0,
-        'Notes': formData.get('notes') || ''
-    };
-
     try {
-        if (CONFIG.REGISTRATION_WEBHOOK.includes('YOUR_')) {
-            throw new Error('Please configure the Webhook URL in script.js');
+        // Parse the date from dd-mm-yyyy to yyyy-mm-dd for backend consistency
+        const dateStr = formData.get('date');
+        const [day, month, year] = dateStr.split('-');
+        const isoDate = `${year}-${month}-${day}`;
+
+        // Validate and sanitize all inputs
+        const data = {
+            'Date': sanitizeInput(isoDate, 'date'),
+            'Week Number': sanitizeInput(formData.get('weekNumber'), 'number'),
+            'Start Time': sanitizeInput(formData.get('startTime'), 'time'),
+            'End Time': sanitizeInput(formData.get('endTime'), 'time'),
+            'Break in minutes': sanitizeInput(formData.get('pause') || '0', 'number'),
+            'Notes': sanitizeInput(formData.get('notes') || '', 'text')
+        };
+
+        // Validate time logic
+        const [startHour, startMin] = data['Start Time'].split(':').map(Number);
+        const [endHour, endMin] = data['End Time'].split(':').map(Number);
+        const startMinutes = startHour * 60 + startMin;
+        const endMinutes = endHour * 60 + endMin;
+
+        if (endMinutes <= startMinutes) {
+            throw new Error('Eindtijd moet na starttijd zijn');
         }
 
-        const response = await fetch(CONFIG.REGISTRATION_WEBHOOK, {
+        if (data['Break in minutes'] < 0 || data['Break in minutes'] > 480) {
+            throw new Error('Pauze moet tussen 0 en 480 minuten zijn');
+        }
+
+        const webhooks = getWebhooks();
+
+        const response = await fetch(webhooks.registration, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -151,12 +231,13 @@ async function handleReportSending() {
     btn.innerHTML = '<div class="loader"></div> Versturen...';
 
     try {
-        if (CONFIG.REPORT_WEBHOOK.includes('YOUR_')) {
-            throw new Error('Please configure the Webhook URL in script.js');
-        }
+        const webhooks = getWebhooks();
 
-        const response = await fetch(CONFIG.REPORT_WEBHOOK, {
+        const response = await fetch(webhooks.report, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
                 trigger: 'manual',
                 date: new Date().toISOString()
@@ -204,4 +285,41 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 3000);
+}
+
+// ========================================
+// CONFIGURATION HELPER TOOL
+// ========================================
+// To encrypt your webhook URLs, open your browser console and run:
+//
+// encryptWebhookHelper('YOUR_WEBHOOK_URL', 'YOUR_ENCRYPTION_KEY')
+//
+// Example:
+// encryptWebhookHelper('https://n8n.example.com/webhook/hours', 'my-secret-key-123')
+//
+// Then copy the output and paste it into the CONFIG object above
+// ========================================
+
+function encryptWebhookHelper(url, key) {
+    if (!url || !key) {
+        console.error('Usage: encryptWebhookHelper(url, key)');
+        console.error('Example: encryptWebhookHelper("https://n8n.example.com/webhook/hours", "my-secret-key-123")');
+        return;
+    }
+
+    let encrypted = '';
+    for (let i = 0; i < url.length; i++) {
+        encrypted += String.fromCharCode(url.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+
+    const base64 = btoa(encrypted);
+    console.log('='.repeat(60));
+    console.log('Encrypted webhook URL:');
+    console.log(base64);
+    console.log('='.repeat(60));
+    console.log('Copy this value and paste it into the CONFIG object');
+    console.log('Encryption key:', key);
+    console.log('='.repeat(60));
+
+    return base64;
 }
