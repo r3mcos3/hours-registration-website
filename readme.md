@@ -37,3 +37,7 @@ This website is designed to work with n8n for registering hours and sending week
 - `index.html`: The main structure of the page.
 - `style.css`: All styling (Glassmorphism, animations, responsive design).
 - `script.js`: Logic for the form and API calls to n8n.
+
+## Screenshots
+
+<img width="1049" height="871" alt="image" src="https://github.com/user-attachments/assets/fb529fbb-645d-4ffa-876d-76265e740e08" />
