@@ -90,6 +90,9 @@ function initializeForm() {
     const now = new Date();
     document.getElementById('currentWeekDisplay').textContent = getWeekNumber(now);
     updateWeekRange(now);
+
+    // Initialize week overview
+    updateWeekOverview();
 }
 
 function updateWeekRange(date) {
@@ -206,9 +209,15 @@ async function handleRegistration(formData) {
         });
 
         if (response.ok) {
+            // Save to localStorage
+            saveHoursToLocalStorage(data);
+
             showToast('Uren succesvol geregistreerd!', 'success');
             document.getElementById('hoursForm').reset();
             initializeForm(); // Reset date and week
+
+            // Update week overview
+            updateWeekOverview();
         } else {
             throw new Error('Server returned ' + response.status);
         }
@@ -285,6 +294,121 @@ function showToast(message, type = 'success') {
     setTimeout(() => {
         toast.classList.add('hidden');
     }, 3000);
+}
+
+// ========================================
+// WEEK OVERVIEW FUNCTIONALITY
+// ========================================
+
+function saveHoursToLocalStorage(data) {
+    const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
+
+    // Add timestamp for record keeping
+    const record = {
+        ...data,
+        timestamp: new Date().toISOString()
+    };
+
+    hours.push(record);
+    localStorage.setItem('registeredHours', JSON.stringify(hours));
+}
+
+function getWeekBoundaries(date) {
+    const curr = new Date(date);
+    const day = curr.getDay();
+    const diff = curr.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+
+    const firstDay = new Date(curr.setDate(diff));
+    firstDay.setHours(0, 0, 0, 0);
+
+    const lastDay = new Date(firstDay);
+    lastDay.setDate(firstDay.getDate() + 6);
+    lastDay.setHours(23, 59, 59, 999);
+
+    return { firstDay, lastDay };
+}
+
+function getWeekHours() {
+    const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
+    const { firstDay, lastDay } = getWeekBoundaries(new Date());
+
+    return hours.filter(entry => {
+        const entryDate = new Date(entry.Date);
+        return entryDate >= firstDay && entryDate <= lastDay;
+    });
+}
+
+function calculateTotalHours(entries) {
+    let totalMinutes = 0;
+
+    entries.forEach(entry => {
+        const [startHour, startMin] = entry['Start Time'].split(':').map(Number);
+        const [endHour, endMin] = entry['End Time'].split(':').map(Number);
+
+        const startMinutes = startHour * 60 + startMin;
+        const endMinutes = endHour * 60 + endMin;
+        const breakMinutes = entry['Break in minutes'] || 0;
+
+        const workedMinutes = endMinutes - startMinutes - breakMinutes;
+        totalMinutes += workedMinutes;
+    });
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return { hours, minutes, totalMinutes };
+}
+
+function updateWeekOverview() {
+    const weekHours = getWeekHours();
+    const { hours, minutes } = calculateTotalHours(weekHours);
+
+    // Update total hours display
+    const totalElement = document.getElementById('weekTotalHours');
+    if (totalElement) {
+        totalElement.textContent = `${hours}u ${minutes}m`;
+    }
+
+    // Update day-by-day breakdown
+    const overviewList = document.getElementById('weekOverviewList');
+    if (overviewList) {
+        if (weekHours.length === 0) {
+            overviewList.innerHTML = '<li class="no-hours">Nog geen uren geregistreerd deze week</li>';
+        } else {
+            // Group by date
+            const groupedByDate = {};
+            weekHours.forEach(entry => {
+                const date = entry.Date;
+                if (!groupedByDate[date]) {
+                    groupedByDate[date] = [];
+                }
+                groupedByDate[date].push(entry);
+            });
+
+            // Sort by date (newest first)
+            const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                return new Date(b) - new Date(a);
+            });
+
+            overviewList.innerHTML = sortedDates.map(date => {
+                const entries = groupedByDate[date];
+                const { hours: dayHours, minutes: dayMinutes } = calculateTotalHours(entries);
+
+                // Format date to Dutch
+                const dateObj = new Date(date);
+                const dayName = dateObj.toLocaleDateString('nl-NL', { weekday: 'short' });
+                const dayNumber = dateObj.getDate();
+                const month = dateObj.toLocaleDateString('nl-NL', { month: 'short' });
+
+                return `
+                    <li class="overview-day">
+                        <span class="day-label">${dayName} ${dayNumber} ${month}</span>
+                        <span class="day-hours">${dayHours}u ${dayMinutes}m</span>
+                    </li>
+                `;
+            }).join('');
+        }
+    }
 }
 
 // ========================================
