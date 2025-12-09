@@ -34,14 +34,36 @@ Zie [SECURITY.md](SECURITY.md) voor gedetailleerde instructies.
 1. **Registration Webhook**:
    - Method: `POST`
    - Path: `hours-registration`
+   - Doel: Ontvangt en slaat geregistreerde uren op
+   - Verwachte data: `id`, `Date`, `Week Number`, `Start Time`, `End Time`, `Break in minutes`, `Notes`
    - Return: 200 OK
 
 2. **Report Webhook**:
    - Method: `POST`
    - Path: `send-weekly-report`
+   - Doel: Verstuurt wekelijkse rapportage email
    - Return: 200 OK
 
-### 3. Gebruik
+3. **Get Hours Webhook** (nieuw voor multi-device sync):
+   - Method: `POST`
+   - Path: `get-hours`
+   - Doel: Haalt geregistreerde uren op voor synchronisatie tussen apparaten
+   - Verwachte data: `startDate`, `endDate` (YYYY-MM-DD formaat)
+   - Return: JSON array met alle uren in de opgegeven periode
+   - Return format: `[{"id": "...", "Date": "2025-12-09", "Week Number": 50, ...}, ...]`
+
+### 3. Multi-Device Synchronisatie
+
+De site ondersteunt nu automatische synchronisatie tussen apparaten:
+
+- **Automatisch**: Bij het laden van de pagina worden uren opgehaald van n8n
+- **Handmatig**: Klik op de 🔄 knop in het weekoverzicht voor direct synchroniseren
+- **Duplicaatpreventie**: Elk uur heeft een unieke ID om duplicaten te voorkomen
+- **Hybride opslag**: Data wordt zowel lokaal (localStorage) als remote (n8n) opgeslagen
+
+**n8n implementatie tip**: Sla alle geregistreerde uren op in een database of Google Sheets met het `id` veld als primaire sleutel, zodat updates correct worden verwerkt.
+
+### 4. Gebruik
 
 1. Open `login.html` in je browser
 2. Log in met je wachtwoord

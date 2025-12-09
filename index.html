@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/dark.css" crossorigin="anonymous">
-    <link rel="stylesheet" href="style.css?v=20251209">
+    <link rel="stylesheet" href="style.css?v=20251209b">
 </head>
 
 <body>
@@ -36,8 +36,10 @@
             <!-- Registration Card -->
             <section class="card glass-panel">
                 <div class="card-header">
-                    <h2>Nieuwe Registratie</h2>
-                    <p>Voer je gewerkte uren in voor vandaag</p>
+                    <div>
+                        <h2>Nieuwe Registratie</h2>
+                        <p>Voer je gewerkte uren in voor vandaag</p>
+                    </div>
                 </div>
                 <form id="hoursForm" class="form-group">
                     <div class="input-group">
@@ -85,8 +87,10 @@
             <!-- Actions Card -->
             <section class="card glass-panel small-card">
                 <div class="card-header">
-                    <h2>Weekrapportage</h2>
-                    <p>Verstuur het overzicht van deze week</p>
+                    <div>
+                        <h2>Weekrapportage</h2>
+                        <p>Verstuur het overzicht van deze week</p>
+                    </div>
                 </div>
                 <div class="action-content">
                     <div class="status-indicator">
@@ -115,8 +119,13 @@
         <!-- Week Overview Card -->
         <section class="card glass-panel week-overview-card">
             <div class="card-header">
-                <h2>Urenoverzicht deze week</h2>
-                <p>Totaal gewerkte uren</p>
+                <div>
+                    <h2>Urenoverzicht deze week</h2>
+                    <p>Totaal gewerkte uren</p>
+                </div>
+                <button id="syncBtn" class="btn-icon" title="Synchroniseer met n8n">
+                    <span class="sync-icon">🔄</span>
+                </button>
             </div>
             <div class="week-overview-content">
                 <div class="total-hours-display">
@@ -139,7 +148,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js" crossorigin="anonymous"></script>
     <script src="auth.js?v=20251209"></script>
-    <script src="script.js?v=20251209"></script>
+    <script src="script.js?v=20251209b"></script>
 </body>
 
 </html>

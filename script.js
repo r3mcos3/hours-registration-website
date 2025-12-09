@@ -11,7 +11,8 @@ const CONFIG = {
 
     // Encrypted webhook URLs (use the helper tool to generate these)
     REGISTRATION_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TQMoASI=',
-    REPORT_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRs7DSA='
+    REPORT_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRs7DSA=',
+    GET_HOURS_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRksAT40D1cQRw==' // Webhook to retrieve hours data
 };
 
 // Decrypt webhook URLs
@@ -35,7 +36,8 @@ function decryptWebhook(encrypted, key) {
 function getWebhooks() {
     return {
         registration: decryptWebhook(CONFIG.REGISTRATION_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY),
-        report: decryptWebhook(CONFIG.REPORT_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY)
+        report: decryptWebhook(CONFIG.REPORT_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY),
+        getHours: decryptWebhook(CONFIG.GET_HOURS_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY)
     };
 }
 
@@ -70,7 +72,7 @@ function startClock() {
     requestAnimationFrame(update);
 }
 
-function initializeForm() {
+async function initializeForm() {
     // Initialize Flatpickr for date input
     flatpickr("#date", {
         dateFormat: "d-m-Y",
@@ -91,7 +93,10 @@ function initializeForm() {
     document.getElementById('currentWeekDisplay').textContent = getWeekNumber(now);
     updateWeekRange(now);
 
-    // Initialize week overview
+    // Sync hours data from n8n before displaying week overview
+    await syncHoursData();
+
+    // Initialize week overview with synced data
     updateWeekOverview();
 }
 
@@ -120,6 +125,12 @@ function setupEventListeners() {
     // Send Report Button
     const reportBtn = document.getElementById('sendReportBtn');
     reportBtn.addEventListener('click', handleReportSending);
+
+    // Sync Button
+    const syncBtn = document.getElementById('syncBtn');
+    if (syncBtn) {
+        syncBtn.addEventListener('click', handleManualSync);
+    }
 }
 
 // Input sanitization function
@@ -174,8 +185,12 @@ async function handleRegistration(formData) {
         const [day, month, year] = dateStr.split('-');
         const isoDate = `${year}-${month}-${day}`;
 
+        // Generate unique ID for this entry
+        const entryId = generateUniqueId();
+
         // Validate and sanitize all inputs
         const data = {
+            'id': entryId,
             'Date': sanitizeInput(isoDate, 'date'),
             'Week Number': sanitizeInput(formData.get('weekNumber'), 'number'),
             'Start Time': sanitizeInput(formData.get('startTime'), 'time'),
@@ -209,8 +224,8 @@ async function handleRegistration(formData) {
         });
 
         if (response.ok) {
-            // Save to localStorage
-            saveHoursToLocalStorage(data);
+            // Save to localStorage with the same ID
+            saveHoursToLocalStorage(data, entryId);
 
             showToast('Uren succesvol geregistreerd!', 'success');
             document.getElementById('hoursForm').reset();
@@ -267,6 +282,30 @@ async function handleReportSending() {
     }
 }
 
+async function handleManualSync() {
+    const btn = document.getElementById('syncBtn');
+
+    btn.disabled = true;
+    btn.classList.add('syncing');
+
+    try {
+        const success = await syncHoursData();
+
+        if (success) {
+            updateWeekOverview();
+            showToast('Uren gesynchroniseerd!', 'success');
+        } else {
+            showToast('Synchronisatie mislukt', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Fout bij synchroniseren: ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('syncing');
+    }
+}
+
 function updateWeekNumber(date) {
     const weekNum = getWeekNumber(date);
     document.getElementById('weekNumber').value = weekNum;
@@ -300,17 +339,25 @@ function showToast(message, type = 'success') {
 // WEEK OVERVIEW FUNCTIONALITY
 // ========================================
 
-function saveHoursToLocalStorage(data) {
+function generateUniqueId() {
+    // Generate a unique ID based on timestamp and random number
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+function saveHoursToLocalStorage(data, id = null) {
     const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
 
-    // Add timestamp for record keeping
+    // Add timestamp and unique ID for record keeping and sync
     const record = {
         ...data,
+        id: id || generateUniqueId(),
         timestamp: new Date().toISOString()
     };
 
     hours.push(record);
     localStorage.setItem('registeredHours', JSON.stringify(hours));
+
+    return record.id;
 }
 
 function getWeekBoundaries(date) {
@@ -408,6 +455,89 @@ function updateWeekOverview() {
                 `;
             }).join('');
         }
+    }
+}
+
+// ========================================
+// DATA SYNCHRONIZATION FUNCTIONALITY
+// ========================================
+
+async function fetchHoursFromN8n() {
+    try {
+        const webhooks = getWebhooks();
+        const { firstDay, lastDay } = getWeekBoundaries(new Date());
+
+        // Request hours for current week from n8n
+        const response = await fetch(webhooks.getHours, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                startDate: firstDay.toISOString().split('T')[0],
+                endDate: lastDay.toISOString().split('T')[0]
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return Array.isArray(data) ? data : (data.hours || []);
+        } else {
+            console.warn('Failed to fetch hours from n8n:', response.status);
+            return [];
+        }
+    } catch (error) {
+        console.warn('Error fetching hours from n8n:', error.message);
+        return [];
+    }
+}
+
+function mergeHoursData(localHours, remoteHours) {
+    // Create a map of all hours by ID
+    const hoursMap = new Map();
+
+    // Add local hours first
+    localHours.forEach(entry => {
+        if (entry.id) {
+            hoursMap.set(entry.id, entry);
+        }
+    });
+
+    // Add/update with remote hours (remote is source of truth)
+    remoteHours.forEach(entry => {
+        if (entry.id) {
+            hoursMap.set(entry.id, entry);
+        }
+    });
+
+    // Convert back to array and sort by date
+    const merged = Array.from(hoursMap.values()).sort((a, b) => {
+        return new Date(a.Date) - new Date(b.Date);
+    });
+
+    return merged;
+}
+
+async function syncHoursData() {
+    try {
+        // Get local hours
+        const localHours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
+
+        // Fetch remote hours
+        const remoteHours = await fetchHoursFromN8n();
+
+        // Merge data (remote is source of truth, but keep local-only entries)
+        const mergedHours = mergeHoursData(localHours, remoteHours);
+
+        // Save merged data to localStorage
+        localStorage.setItem('registeredHours', JSON.stringify(mergedHours));
+
+        console.log(`Synced ${mergedHours.length} hours (${localHours.length} local, ${remoteHours.length} remote)`);
+
+        return true;
+    } catch (error) {
+        console.error('Error syncing hours:', error);
+        return false;
     }
 }
 

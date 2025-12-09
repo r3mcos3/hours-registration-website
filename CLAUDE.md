@@ -88,8 +88,9 @@ Use today's date in format YYYYMMDD (e.g., 20251209) to ensure browsers fetch th
 
 ## n8n Integration
 
-The site expects two n8n webhook endpoints:
-1. **Registration webhook**: Receives hour entries with Date, Week Number, Start Time, End Time, Break, and Notes
+The site expects three n8n webhook endpoints:
+1. **Registration webhook**: Receives hour entries with id, Date, Week Number, Start Time, End Time, Break, and Notes. Store these in a database/spreadsheet using `id` as primary key.
 2. **Report webhook**: Triggered manually to send weekly email report
+3. **Get Hours webhook** (new): Returns registered hours for a date range. Receives `startDate` and `endDate`, returns JSON array of hour entries for multi-device synchronization.
 
 See `README.md` and `SECURITY.md` for n8n webhook configuration details.
