@@ -385,9 +385,9 @@ function updateWeekOverview() {
                 groupedByDate[date].push(entry);
             });
 
-            // Sort by date (newest first)
+            // Sort by date (oldest first - Monday at top)
             const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
-                return new Date(b) - new Date(a);
+                return new Date(a) - new Date(b);
             });
 
             overviewList.innerHTML = sortedDates.map(date => {
