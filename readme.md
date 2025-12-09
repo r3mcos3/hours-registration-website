@@ -72,4 +72,4 @@ Zie [SECURITY.md](SECURITY.md) voor implementatie details.
 
 ## Screenshots
 
-<img width="1049" height="871" alt="image" src="https://github.com/user-attachments/assets/fb529fbb-645d-4ffa-876d-76265e740e08" />
+<img width="1042" height="855" alt="Screenshot 2025-12-09 183641" src="https://github.com/user-attachments/assets/cf4b343b-e681-4321-8e8a-b22212485ce7" />
