@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uren Helper - Handmatig Toevoegen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .success {
+            background: #10b981;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error {
+            background: #ef4444;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .info-box {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-box p {
+            color: #374151;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .current-hours {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .current-hours h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .hours-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .hour-item {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .hour-item strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Uren Helper</h1>
+        <p class="description">Voeg handmatig uren toe aan localStorage zonder webhook aan te roepen</p>
+
+        <div class="info-box">
+            <p><strong>Let op:</strong> Deze uren worden alleen lokaal opgeslagen en NIET naar n8n gestuurd. Gebruik dit alleen voor het toevoegen van gemiste uren.</p>
+        </div>
+
+        <form id="hoursForm">
+            <div class="form-group">
+                <label>Datum (dd-mm-jjjj)</label>
+                <input type="text" id="date" placeholder="09-12-2024" pattern="\d{2}-\d{2}-\d{4}" required>
+            </div>
+
+            <div class="input-row">
+                <div class="form-group">
+                    <label>Starttijd (UU:MM)</label>
+                    <input type="text" id="startTime" placeholder="09:00" pattern="\d{2}:\d{2}" required>
+                </div>
+                <div class="form-group">
+                    <label>Eindtijd (UU:MM)</label>
+                    <input type="text" id="endTime" placeholder="17:00" pattern="\d{2}:\d{2}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Pauze (minuten)</label>
+                <input type="number" id="breakMinutes" placeholder="30" min="0" value="0">
+            </div>
+
+            <div class="form-group">
+                <label>Notities</label>
+                <textarea id="notes" placeholder="Bijv. Maandag werkzaamheden..."></textarea>
+            </div>
+
+            <button type="submit">➕ Voeg Toe aan localStorage</button>
+        </form>
+
+        <div class="success" id="successMsg"></div>
+        <div class="error" id="errorMsg"></div>
+
+        <div class="current-hours">
+            <h2>Huidige uren in localStorage</h2>
+            <div class="hours-list" id="hoursList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Get week number (ISO 8601)
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            return weekNo;
+        }
+
+        function generateUniqueId() {
+            return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        function addHoursToLocalStorage(date, startTime, endTime, breakMinutes, notes) {
+            // Parse date from dd-mm-yyyy
+            const [day, month, year] = date.split('-');
+            const isoDate = `${year}-${month}-${day}`;
+
+            // Calculate week number
+            const dateObj = new Date(year, month - 1, day);
+            const weekNo = getWeekNumber(dateObj);
+
+            // Generate unique ID
+            const id = generateUniqueId();
+
+            // Create entry
+            const entry = {
+                'id': id,
+                'Date': isoDate,
+                'Week Number': weekNo,
+                'Start Time': startTime,
+                'End Time': endTime,
+                'Break in minutes': parseInt(breakMinutes),
+                'Notes': notes,
+                'timestamp': new Date().toISOString()
+            };
+
+            // Add to localStorage
+            const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
+            hours.push(entry);
+            localStorage.setItem('registeredHours', JSON.stringify(hours));
+
+            return entry;
+        }
+
+        function showSuccess(message) {
+            const successMsg = document.getElementById('successMsg');
+            successMsg.textContent = message;
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.style.display = 'block';
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        function displayCurrentHours() {
+            const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
+            const hoursList = document.getElementById('hoursList');
+
+            if (hours.length === 0) {
+                hoursList.innerHTML = '<div class="hour-item">Nog geen uren opgeslagen</div>';
+                return;
+            }
+
+            // Sort by date (newest first)
+            hours.sort((a, b) => new Date(b.Date) - new Date(a.Date));
+
+            hoursList.innerHTML = hours.map(entry => {
+                const date = new Date(entry.Date);
+                const dateStr = date.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                const breakMins = entry['Break in minutes'] || 0;
+                const worked = calculateWorkedHours(entry['Start Time'], entry['End Time'], breakMins);
+
+                // Calculate bruto hours
+                const [startHour, startMin] = entry['Start Time'].split(':').map(Number);
+                const [endHour, endMin] = entry['End Time'].split(':').map(Number);
+                const brutoMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                const brutoHours = Math.floor(brutoMinutes / 60);
+                const brutoMins = brutoMinutes % 60;
+
+                return `
+                    <div class="hour-item">
+                        <strong>${dateStr}</strong> - Week ${entry['Week Number']}<br>
+                        ${entry['Start Time']} - ${entry['End Time']} = ${brutoHours}u ${brutoMins}m bruto<br>
+                        Pauze: ${breakMins}m | <strong>Netto: ${worked}</strong><br>
+                        ${entry.Notes ? `📝 ${entry.Notes}` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calculateWorkedHours(startTime, endTime, breakMinutes) {
+            const [startHour, startMin] = startTime.split(':').map(Number);
+            const [endHour, endMin] = endTime.split(':').map(Number);
+            const startMinutes = startHour * 60 + startMin;
+            const endMinutes = endHour * 60 + endMin;
+            const workedMinutes = endMinutes - startMinutes - parseInt(breakMinutes || 0);
+            const hours = Math.floor(workedMinutes / 60);
+            const minutes = workedMinutes % 60;
+            return `${hours}u ${minutes}m`;
+        }
+
+        // Form submission
+        document.getElementById('hoursForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            try {
+                const date = document.getElementById('date').value;
+                const startTime = document.getElementById('startTime').value;
+                const endTime = document.getElementById('endTime').value;
+                const breakMinutes = document.getElementById('breakMinutes').value || 0;
+                const notes = document.getElementById('notes').value;
+
+                // Validate time logic
+                const [startHour, startMin] = startTime.split(':').map(Number);
+                const [endHour, endMin] = endTime.split(':').map(Number);
+                const startMinutes = startHour * 60 + startMin;
+                const endMinutes = endHour * 60 + endMin;
+
+                if (endMinutes <= startMinutes) {
+                    throw new Error('Eindtijd moet na starttijd zijn');
+                }
+
+                const entry = addHoursToLocalStorage(date, startTime, endTime, breakMinutes, notes);
+
+                const worked = calculateWorkedHours(startTime, endTime, parseInt(breakMinutes));
+                showSuccess(`✅ Uren toegevoegd: ${date} (${worked})`);
+
+                // Reset form
+                document.getElementById('hoursForm').reset();
+
+                // Refresh list
+                displayCurrentHours();
+            } catch (error) {
+                showError('❌ Fout: ' + error.message);
+            }
+        });
+
+        // Initial display
+        displayCurrentHours();
+
+        // Set default date to today
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        document.getElementById('date').value = `${dd}-${mm}-${yyyy}`;
+    </script>
+</body>
+</html>
