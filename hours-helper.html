@@ -189,8 +189,13 @@
 
         <div class="debug-info" id="debugInfo">
             <h4>Debug Info</h4>
-            <div id="debugContent">Klaar om uren toe te voegen...</div>
+            <div id="debugContent">⏳ Laden...</div>
         </div>
+
+        <script>
+            // Immediate test to see if JavaScript works at all
+            document.getElementById('debugContent').innerHTML = '✅ JavaScript werkt!<br>Wachten op initialisatie...';
+        </script>
     </main>
 
     <div id="toast" class="toast hidden">
@@ -200,11 +205,21 @@
     <script>
         // Debug logging
         function debugLog(message) {
-            const debugContent = document.getElementById('debugContent');
-            const timestamp = new Date().toLocaleTimeString();
-            debugContent.innerHTML += `<br>[${timestamp}] ${message}`;
-            console.log(`[DEBUG] ${message}`);
+            try {
+                const debugContent = document.getElementById('debugContent');
+                const timestamp = new Date().toLocaleTimeString();
+                if (debugContent) {
+                    debugContent.innerHTML += `<br>[${timestamp}] ${message}`;
+                }
+                console.log(`[DEBUG] ${message}`);
+            } catch (error) {
+                console.error('Debug log error:', error);
+            }
         }
+
+        // Test immediately
+        console.log('=== SCRIPT LOADED ===');
+        debugLog('Script is running!');
 
         // Get week number (ISO 8601)
         function getWeekNumber(d) {
@@ -421,8 +436,9 @@
             requestAnimationFrame(update);
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize function
+        function initializePage() {
+            console.log('=== INITIALIZING PAGE ===');
             debugLog('Page loaded, initializing...');
 
             // Set default date to today
@@ -430,7 +446,13 @@
             const dd = String(today.getDate()).padStart(2, '0');
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const yyyy = today.getFullYear();
-            document.getElementById('date').value = `${dd}-${mm}-${yyyy}`;
+            const dateInput = document.getElementById('date');
+            if (dateInput) {
+                dateInput.value = `${dd}-${mm}-${yyyy}`;
+                debugLog(`Date set to: ${dd}-${mm}-${yyyy}`);
+            } else {
+                debugLog('ERROR: Date input not found!');
+            }
 
             // Display current hours
             displayCurrentHours();
@@ -439,7 +461,23 @@
             startClock();
 
             debugLog('Initialization complete');
-        });
+        }
+
+        // Try multiple initialization methods
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializePage);
+        } else {
+            // DOM already loaded
+            initializePage();
+        }
+
+        // Fallback - also try after a short delay
+        setTimeout(() => {
+            if (!document.getElementById('date').value) {
+                console.log('Fallback initialization...');
+                initializePage();
+            }
+        }, 500);
     </script>
 </body>
 
