@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20251210">
+    <link rel="stylesheet" href="style.css?v=20251210b">
     <style>
         /* Additional styles specific to helper page */
         .helper-container {
@@ -72,10 +72,41 @@
             color: var(--text-primary);
             font-size: 0.9rem;
             line-height: 1.6;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
         }
 
         .hour-item strong {
             color: var(--accent-secondary);
+        }
+
+        .hour-item-content {
+            flex: 1;
+        }
+
+        .delete-btn {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: rgba(220, 53, 69, 0.5);
+            transform: scale(1.05);
+        }
+
+        .delete-btn:active {
+            transform: scale(0.95);
         }
 
         .no-hours {
@@ -297,6 +328,41 @@
             return entry;
         }
 
+        function deleteHourEntry(entryId) {
+            debugLog(`Deleting entry with ID: ${entryId}`);
+
+            if (!confirm('Weet je zeker dat je deze uren wilt verwijderen?')) {
+                debugLog('Deletion cancelled by user');
+                return;
+            }
+
+            try {
+                const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
+                const originalCount = hours.length;
+
+                // Filter out the entry with matching ID
+                const filteredHours = hours.filter(entry => entry.id !== entryId);
+
+                if (filteredHours.length === originalCount) {
+                    debugLog(`WARNING: No entry found with ID ${entryId}`);
+                    showToast('⚠️ Uren niet gevonden', 'error');
+                    return;
+                }
+
+                // Save back to localStorage
+                localStorage.setItem('registeredHours', JSON.stringify(filteredHours));
+
+                debugLog(`Entry deleted. Count: ${originalCount} → ${filteredHours.length}`);
+                showToast('✅ Uren verwijderd', 'success');
+
+                // Refresh the display
+                displayCurrentHours();
+            } catch (error) {
+                debugLog(`ERROR deleting entry: ${error.message}`);
+                showToast('❌ Fout bij verwijderen: ' + error.message, 'error');
+            }
+        }
+
         function displayCurrentHours() {
             debugLog('Displaying current hours...');
 
@@ -339,10 +405,13 @@
 
                     return `
                         <div class="hour-item">
-                            <strong>${dateStr}</strong> - Week ${entry['Week Number']}<br>
-                            ${entry['Start Time']} - ${entry['End Time']} = ${brutoHours}u ${brutoMins}m bruto<br>
-                            Pauze: ${breakMins}m | <strong>Netto: ${nettoHours}u ${nettoMins}m</strong><br>
-                            ${entry.Notes ? `📝 ${entry.Notes}` : ''}
+                            <div class="hour-item-content">
+                                <strong>${dateStr}</strong> - Week ${entry['Week Number']}<br>
+                                ${entry['Start Time']} - ${entry['End Time']} = ${brutoHours}u ${brutoMins}m bruto<br>
+                                Pauze: ${breakMins}m | <strong>Netto: ${nettoHours}u ${nettoMins}m</strong><br>
+                                ${entry.Notes ? `📝 ${entry.Notes}` : ''}
+                            </div>
+                            <button class="delete-btn" onclick="deleteHourEntry('${entry.id}')">🗑️ Verwijder</button>
                         </div>
                     `;
                 } catch (error) {
