@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20251210b">
+    <link rel="stylesheet" href="style.css?v=20251210c">
     <style>
         /* Additional styles specific to helper page */
         .helper-container {
@@ -116,6 +116,30 @@
             font-style: italic;
         }
 
+        .debug-section {
+            margin-top: 2rem;
+        }
+
+        .debug-toggle-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: fit-content;
+        }
+
+        .debug-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-primary);
+        }
+
         .debug-info {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -132,6 +156,10 @@
         .debug-info h4 {
             color: var(--accent-primary);
             margin-bottom: 0.5rem;
+        }
+
+        .debug-info.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -218,9 +246,15 @@
             </div>
         </section>
 
-        <div class="debug-info" id="debugInfo">
-            <h4>Debug Info</h4>
-            <div id="debugContent">⏳ Laden...</div>
+        <div class="debug-section">
+            <button class="debug-toggle-btn" onclick="toggleDebugInfo()">
+                <span id="debugToggleIcon">🔍</span>
+                <span id="debugToggleText">Toon Debug Info</span>
+            </button>
+            <div class="debug-info hidden" id="debugInfo">
+                <h4>Debug Info</h4>
+                <div id="debugContent">⏳ Laden...</div>
+            </div>
         </div>
     </main>
 
@@ -229,6 +263,25 @@
     </div>
 
     <script>
+        // Toggle debug info visibility
+        function toggleDebugInfo() {
+            const debugInfo = document.getElementById('debugInfo');
+            const toggleIcon = document.getElementById('debugToggleIcon');
+            const toggleText = document.getElementById('debugToggleText');
+
+            if (debugInfo.classList.contains('hidden')) {
+                debugInfo.classList.remove('hidden');
+                toggleIcon.textContent = '🔽';
+                toggleText.textContent = 'Verberg Debug Info';
+                localStorage.setItem('debugInfoVisible', 'true');
+            } else {
+                debugInfo.classList.add('hidden');
+                toggleIcon.textContent = '🔍';
+                toggleText.textContent = 'Toon Debug Info';
+                localStorage.setItem('debugInfoVisible', 'false');
+            }
+        }
+
         // Debug logging
         function debugLog(message) {
             try {
@@ -516,6 +569,17 @@
         function initializePage() {
             console.log('=== INITIALIZING PAGE ===');
             debugLog('Page loaded, initializing...');
+
+            // Restore debug visibility from localStorage
+            const debugVisible = localStorage.getItem('debugInfoVisible') === 'true';
+            if (debugVisible) {
+                const debugInfo = document.getElementById('debugInfo');
+                const toggleIcon = document.getElementById('debugToggleIcon');
+                const toggleText = document.getElementById('debugToggleText');
+                debugInfo.classList.remove('hidden');
+                toggleIcon.textContent = '🔽';
+                toggleText.textContent = 'Verberg Debug Info';
+            }
 
             // Set default date to today
             const today = new Date();
