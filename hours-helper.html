@@ -1,219 +1,211 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Uren Helper - Handmatig Toevoegen</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✏️</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20251210">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Additional styles specific to helper page */
+        .helper-container {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+        .back-link {
+            display: inline-flex;
             align-items: center;
-        }
-
-        .container {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        h1 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 24px;
-        }
-
-        .description {
-            color: #666;
-            margin-bottom: 25px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
         }
 
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-primary);
+            transform: translateX(-4px);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 60px;
+        .info-banner {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
         }
 
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .info-banner strong {
+            color: var(--accent-primary);
         }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .success {
-            background: #10b981;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .error {
-            background: #ef4444;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .info-box {
-            background: #f3f4f6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info-box p {
-            color: #374151;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-
-        .current-hours {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
-        }
-
-        .current-hours h2 {
-            color: #333;
-            font-size: 18px;
-            margin-bottom: 15px;
+        .current-hours-section {
+            margin-top: 2rem;
         }
 
         .hours-list {
-            max-height: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
             overflow-y: auto;
+            padding: 1rem 0;
         }
 
         .hour-item {
-            background: #f9fafb;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            color: #374151;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            line-height: 1.6;
         }
 
         .hour-item strong {
-            color: #667eea;
+            color: var(--accent-secondary);
+        }
+
+        .no-hours {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .debug-info h4 {
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>📝 Uren Helper</h1>
-        <p class="description">Voeg handmatig uren toe aan localStorage zonder webhook aan te roepen</p>
+    <div class="background-clock">
+        <div class="clock-ring ring-1"></div>
+        <div class="clock-ring ring-2"></div>
+        <div class="clock-ring ring-3"></div>
+        <div class="clock-center"></div>
+        <div class="clock-hand hour"></div>
+        <div class="clock-hand minute"></div>
+        <div class="clock-hand second"></div>
+    </div>
 
-        <div class="info-box">
-            <p><strong>Let op:</strong> Deze uren worden alleen lokaal opgeslagen en NIET naar n8n gestuurd. Gebruik dit alleen voor het toevoegen van gemiste uren.</p>
+    <main class="container helper-container">
+        <a href="index.html" class="back-link">
+            ← Terug naar hoofdpagina
+        </a>
+
+        <header class="header">
+            <h1>✏️ Uren Helper</h1>
+            <p class="subtitle">Voeg handmatig uren toe aan localStorage</p>
+        </header>
+
+        <div class="info-banner">
+            <strong>⚠️ Let op:</strong> Deze uren worden alleen lokaal opgeslagen en NIET naar n8n gestuurd. Gebruik dit
+            alleen voor het toevoegen van gemiste uren die je later handmatig moet registreren.
         </div>
 
-        <form id="hoursForm">
-            <div class="form-group">
-                <label>Datum (dd-mm-jjjj)</label>
-                <input type="text" id="date" placeholder="09-12-2024" pattern="\d{2}-\d{2}-\d{4}" required>
-            </div>
-
-            <div class="input-row">
-                <div class="form-group">
-                    <label>Starttijd (UU:MM)</label>
-                    <input type="text" id="startTime" placeholder="09:00" pattern="\d{2}:\d{2}" required>
-                </div>
-                <div class="form-group">
-                    <label>Eindtijd (UU:MM)</label>
-                    <input type="text" id="endTime" placeholder="17:00" pattern="\d{2}:\d{2}" required>
+        <section class="card glass-panel">
+            <div class="card-header">
+                <div>
+                    <h2>Nieuwe Uren Toevoegen</h2>
+                    <p>Vul de gegevens in om lokaal op te slaan</p>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Pauze (minuten)</label>
-                <input type="number" id="breakMinutes" placeholder="30" min="0" value="0">
+            <form id="hoursForm" class="form-group">
+                <div class="input-group">
+                    <label for="date">Datum (dd-mm-jjjj) <span class="required">*</span></label>
+                    <input type="text" id="date" placeholder="10-12-2024" pattern="\d{2}-\d{2}-\d{4}" required>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="startTime">Starttijd <span class="required">*</span></label>
+                        <input type="text" id="startTime" name="startTime" placeholder="09:00"
+                            pattern="[0-9]{2}:[0-9]{2}" title="Tijd in formaat UU:MM (bijv. 09:00)" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="endTime">Eindtijd <span class="required">*</span></label>
+                        <input type="text" id="endTime" name="endTime" placeholder="17:00" pattern="[0-9]{2}:[0-9]{2}"
+                            title="Tijd in formaat UU:MM (bijv. 17:00)" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="pause">Pauze (minuten)</label>
+                    <input type="number" id="pause" name="pause" placeholder="30" min="0" value="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="notes">Notities</label>
+                    <textarea id="notes" name="notes" placeholder="Bijv. Maandag werkzaamheden..." rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <span class="btn-text">➕ Toevoegen aan localStorage</span>
+                    <div class="loader hidden"></div>
+                </button>
+            </form>
+        </section>
+
+        <section class="card glass-panel current-hours-section">
+            <div class="card-header">
+                <div>
+                    <h2>Opgeslagen Uren</h2>
+                    <p>Alle uren in je localStorage</p>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label>Notities</label>
-                <textarea id="notes" placeholder="Bijv. Maandag werkzaamheden..."></textarea>
+            <div class="hours-list" id="hoursList">
+                <div class="no-hours">Laden...</div>
             </div>
+        </section>
 
-            <button type="submit">➕ Voeg Toe aan localStorage</button>
-        </form>
-
-        <div class="success" id="successMsg"></div>
-        <div class="error" id="errorMsg"></div>
-
-        <div class="current-hours">
-            <h2>Huidige uren in localStorage</h2>
-            <div class="hours-list" id="hoursList"></div>
+        <div class="debug-info" id="debugInfo">
+            <h4>Debug Info</h4>
+            <div id="debugContent">Klaar om uren toe te voegen...</div>
         </div>
+    </main>
+
+    <div id="toast" class="toast hidden">
+        <span id="toastMessage">Succesvol opgeslagen!</span>
     </div>
 
     <script>
+        // Debug logging
+        function debugLog(message) {
+            const debugContent = document.getElementById('debugContent');
+            const timestamp = new Date().toLocaleTimeString();
+            debugContent.innerHTML += `<br>[${timestamp}] ${message}`;
+            console.log(`[DEBUG] ${message}`);
+        }
+
         // Get week number (ISO 8601)
         function getWeekNumber(d) {
             d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -227,14 +219,35 @@
             return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         }
 
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+
+            toastMsg.textContent = message;
+            toast.style.borderColor = type === 'success' ? 'var(--success)' : 'var(--error)';
+            toast.style.color = type === 'success' ? 'var(--success)' : 'var(--error)';
+
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+
         function addHoursToLocalStorage(date, startTime, endTime, breakMinutes, notes) {
+            debugLog(`Adding hours: ${date}, ${startTime}-${endTime}, break: ${breakMinutes}m`);
+
             // Parse date from dd-mm-yyyy
             const [day, month, year] = date.split('-');
             const isoDate = `${year}-${month}-${day}`;
 
+            debugLog(`Converted date: ${isoDate}`);
+
             // Calculate week number
             const dateObj = new Date(year, month - 1, day);
             const weekNo = getWeekNumber(dateObj);
+
+            debugLog(`Week number: ${weekNo}`);
 
             // Generate unique ID
             const id = generateUniqueId();
@@ -251,38 +264,39 @@
                 'timestamp': new Date().toISOString()
             };
 
+            debugLog(`Entry created with ID: ${id}`);
+
+            // Get existing hours
+            const existingData = localStorage.getItem('registeredHours');
+            debugLog(`Existing localStorage data: ${existingData ? existingData.length + ' chars' : 'empty'}`);
+
+            const hours = JSON.parse(existingData || '[]');
+            debugLog(`Current hours count: ${hours.length}`);
+
             // Add to localStorage
-            const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
             hours.push(entry);
             localStorage.setItem('registeredHours', JSON.stringify(hours));
+
+            debugLog(`Saved! New hours count: ${hours.length}`);
+
+            // Verify save
+            const verification = localStorage.getItem('registeredHours');
+            const verifyHours = JSON.parse(verification || '[]');
+            debugLog(`Verification: ${verifyHours.length} hours in storage`);
 
             return entry;
         }
 
-        function showSuccess(message) {
-            const successMsg = document.getElementById('successMsg');
-            successMsg.textContent = message;
-            successMsg.style.display = 'block';
-            setTimeout(() => {
-                successMsg.style.display = 'none';
-            }, 5000);
-        }
-
-        function showError(message) {
-            const errorMsg = document.getElementById('errorMsg');
-            errorMsg.textContent = message;
-            errorMsg.style.display = 'block';
-            setTimeout(() => {
-                errorMsg.style.display = 'none';
-            }, 5000);
-        }
-
         function displayCurrentHours() {
+            debugLog('Displaying current hours...');
+
             const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
             const hoursList = document.getElementById('hoursList');
 
+            debugLog(`Found ${hours.length} hours in localStorage`);
+
             if (hours.length === 0) {
-                hoursList.innerHTML = '<div class="hour-item">Nog geen uren opgeslagen</div>';
+                hoursList.innerHTML = '<div class="no-hours">Nog geen uren opgeslagen</div>';
                 return;
             }
 
@@ -293,7 +307,6 @@
                 const date = new Date(entry.Date);
                 const dateStr = date.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
                 const breakMins = entry['Break in minutes'] || 0;
-                const worked = calculateWorkedHours(entry['Start Time'], entry['End Time'], breakMins);
 
                 // Calculate bruto hours
                 const [startHour, startMin] = entry['Start Time'].split(':').map(Number);
@@ -302,38 +315,43 @@
                 const brutoHours = Math.floor(brutoMinutes / 60);
                 const brutoMins = brutoMinutes % 60;
 
+                // Calculate netto hours
+                const nettoMinutes = brutoMinutes - breakMins;
+                const nettoHours = Math.floor(nettoMinutes / 60);
+                const nettoMins = nettoMinutes % 60;
+
                 return `
                     <div class="hour-item">
                         <strong>${dateStr}</strong> - Week ${entry['Week Number']}<br>
                         ${entry['Start Time']} - ${entry['End Time']} = ${brutoHours}u ${brutoMins}m bruto<br>
-                        Pauze: ${breakMins}m | <strong>Netto: ${worked}</strong><br>
+                        Pauze: ${breakMins}m | <strong>Netto: ${nettoHours}u ${nettoMins}m</strong><br>
                         ${entry.Notes ? `📝 ${entry.Notes}` : ''}
                     </div>
                 `;
             }).join('');
         }
 
-        function calculateWorkedHours(startTime, endTime, breakMinutes) {
-            const [startHour, startMin] = startTime.split(':').map(Number);
-            const [endHour, endMin] = endTime.split(':').map(Number);
-            const startMinutes = startHour * 60 + startMin;
-            const endMinutes = endHour * 60 + endMin;
-            const workedMinutes = endMinutes - startMinutes - parseInt(breakMinutes || 0);
-            const hours = Math.floor(workedMinutes / 60);
-            const minutes = workedMinutes % 60;
-            return `${hours}u ${minutes}m`;
-        }
-
         // Form submission
         document.getElementById('hoursForm').addEventListener('submit', (e) => {
             e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const loader = submitBtn.querySelector('.loader');
+
+            // Loading state
+            submitBtn.disabled = true;
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
 
             try {
                 const date = document.getElementById('date').value;
                 const startTime = document.getElementById('startTime').value;
                 const endTime = document.getElementById('endTime').value;
-                const breakMinutes = document.getElementById('breakMinutes').value || 0;
+                const breakMinutes = document.getElementById('pause').value || 0;
                 const notes = document.getElementById('notes').value;
+
+                debugLog(`Form submitted with date: ${date}`);
 
                 // Validate time logic
                 const [startHour, startMin] = startTime.split(':').map(Number);
@@ -347,28 +365,82 @@
 
                 const entry = addHoursToLocalStorage(date, startTime, endTime, breakMinutes, notes);
 
-                const worked = calculateWorkedHours(startTime, endTime, parseInt(breakMinutes));
-                showSuccess(`✅ Uren toegevoegd: ${date} (${worked})`);
+                // Calculate worked hours for display
+                const nettoMinutes = (endMinutes - startMinutes) - parseInt(breakMinutes);
+                const hours = Math.floor(nettoMinutes / 60);
+                const minutes = nettoMinutes % 60;
+
+                showToast(`✅ Uren toegevoegd: ${date} (${hours}u ${minutes}m netto)`, 'success');
 
                 // Reset form
                 document.getElementById('hoursForm').reset();
 
+                // Set default date to today
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                document.getElementById('date').value = `${dd}-${mm}-${yyyy}`;
+
                 // Refresh list
                 displayCurrentHours();
             } catch (error) {
-                showError('❌ Fout: ' + error.message);
+                debugLog(`ERROR: ${error.message}`);
+                showToast('❌ Fout: ' + error.message, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.classList.remove('hidden');
+                loader.classList.add('hidden');
             }
         });
 
-        // Initial display
-        displayCurrentHours();
+        // Clock animation (reuse from main page)
+        function startClock() {
+            const hourHand = document.querySelector('.clock-hand.hour');
+            const minuteHand = document.querySelector('.clock-hand.minute');
+            const secondHand = document.querySelector('.clock-hand.second');
 
-        // Set default date to today
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-        document.getElementById('date').value = `${dd}-${mm}-${yyyy}`;
+            function update() {
+                const now = new Date();
+                const seconds = now.getSeconds();
+                const minutes = now.getMinutes();
+                const hours = now.getHours();
+
+                const secondDeg = ((seconds / 60) * 360);
+                const minuteDeg = ((minutes / 60) * 360) + ((seconds / 60) * 6);
+                const hourDeg = ((hours / 12) * 360) + ((minutes / 60) * 30);
+
+                if (secondHand) secondHand.style.transform = `translate(-50%, -50%) rotate(${secondDeg}deg)`;
+                if (minuteHand) minuteHand.style.transform = `translate(-50%, -50%) rotate(${minuteDeg}deg)`;
+                if (hourHand) hourHand.style.transform = `translate(-50%, -50%) rotate(${hourDeg}deg)`;
+
+                requestAnimationFrame(update);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            debugLog('Page loaded, initializing...');
+
+            // Set default date to today
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            document.getElementById('date').value = `${dd}-${mm}-${yyyy}`;
+
+            // Display current hours
+            displayCurrentHours();
+
+            // Start clock
+            startClock();
+
+            debugLog('Initialization complete');
+        });
     </script>
 </body>
+
 </html>
