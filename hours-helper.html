@@ -314,31 +314,43 @@
             hours.sort((a, b) => new Date(b.Date) - new Date(a.Date));
 
             hoursList.innerHTML = hours.map(entry => {
-                const date = new Date(entry.Date);
-                const dateStr = date.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-                const breakMins = entry['Break in minutes'] || 0;
+                try {
+                    // Validate entry has required fields
+                    if (!entry['Start Time'] || !entry['End Time']) {
+                        debugLog(`Skipping invalid entry: ${JSON.stringify(entry)}`);
+                        return '';
+                    }
 
-                // Calculate bruto hours
-                const [startHour, startMin] = entry['Start Time'].split(':').map(Number);
-                const [endHour, endMin] = entry['End Time'].split(':').map(Number);
-                const brutoMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-                const brutoHours = Math.floor(brutoMinutes / 60);
-                const brutoMins = brutoMinutes % 60;
+                    const date = new Date(entry.Date);
+                    const dateStr = date.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                    const breakMins = entry['Break in minutes'] || 0;
 
-                // Calculate netto hours
-                const nettoMinutes = brutoMinutes - breakMins;
-                const nettoHours = Math.floor(nettoMinutes / 60);
-                const nettoMins = nettoMinutes % 60;
+                    // Calculate bruto hours
+                    const [startHour, startMin] = entry['Start Time'].split(':').map(Number);
+                    const [endHour, endMin] = entry['End Time'].split(':').map(Number);
+                    const brutoMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
+                    const brutoHours = Math.floor(brutoMinutes / 60);
+                    const brutoMins = brutoMinutes % 60;
 
-                return `
-                    <div class="hour-item">
-                        <strong>${dateStr}</strong> - Week ${entry['Week Number']}<br>
-                        ${entry['Start Time']} - ${entry['End Time']} = ${brutoHours}u ${brutoMins}m bruto<br>
-                        Pauze: ${breakMins}m | <strong>Netto: ${nettoHours}u ${nettoMins}m</strong><br>
-                        ${entry.Notes ? `📝 ${entry.Notes}` : ''}
-                    </div>
-                `;
-            }).join('');
+                    // Calculate netto hours
+                    const nettoMinutes = brutoMinutes - breakMins;
+                    const nettoHours = Math.floor(nettoMinutes / 60);
+                    const nettoMins = nettoMinutes % 60;
+
+                    return `
+                        <div class="hour-item">
+                            <strong>${dateStr}</strong> - Week ${entry['Week Number']}<br>
+                            ${entry['Start Time']} - ${entry['End Time']} = ${brutoHours}u ${brutoMins}m bruto<br>
+                            Pauze: ${breakMins}m | <strong>Netto: ${nettoHours}u ${nettoMins}m</strong><br>
+                            ${entry.Notes ? `📝 ${entry.Notes}` : ''}
+                        </div>
+                    `;
+                } catch (error) {
+                    debugLog(`Error displaying entry: ${error.message}`);
+                    console.error('Entry error:', entry, error);
+                    return '';
+                }
+            }).filter(html => html !== '').join('');
         }
 
         // Form submission
