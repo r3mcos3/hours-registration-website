@@ -4,93 +4,87 @@ This website is designed to work with n8n for registering hours and sending week
 
 ## Security Features
 
-✅ **Login beveiliging** - Wachtwoordbeveiliging voor toegang
-✅ **Versleutelde webhooks** - Webhook URLs zijn encrypted in de code
-✅ **Input validatie** - Alle gebruikersinput wordt gevalideerd en gesanitized
-✅ **Session management** - Automatische uitlog na 24 uur
-✅ **Subresource Integrity** - Externe scripts zijn beschermd
+✅ **Login protection** - Password protection for access
+✅ **Encrypted webhooks** - Webhook URLs are encrypted in the code
+✅ **Input validation** - All user input is validated and sanitized
+✅ **Session management** - Automatic logout after 24 hours
+✅ **Subresource Integrity** - External scripts are protected
 
-⚠️ **BELANGRIJK**: Lees [SECURITY.md](SECURITY.md) voor complete configuratie-instructies!
+⚠️ **IMPORTANT**: Read [SECURITY.md](SECURITY.md) for complete configuration instructions!
 
 ## Quick Start
 
-### 1. Configureer Beveiliging
+### 1. Configure Security
 
-**a) Stel je wachtwoord in:**
-1. Ga naar: https://emn178.github.io/online-tools/sha256.html
-2. Genereer een SHA-256 hash van je wachtwoord
-3. Open `login.html` en vervang `YOUR_PASSWORD_HASH_HERE` met je hash
+**a) Set your password:**
+1. Go to: https://emn178.github.io/online-tools/sha256.html
+2. Generate a SHA-256 hash of your password
+3. Open `login.html` and replace `YOUR_PASSWORD_HASH_HERE` with your hash
 
-**b) Versleutel je webhook URLs:**
-1. Open `script.js` en stel een `ENCRYPTION_KEY` in
-2. Open `index.html` in je browser en open de console (F12)
-3. Voer uit: `encryptWebhookHelper('je-webhook-url', 'je-encryption-key')`
-4. Kopieer de output naar `script.js`
+**b) Encrypt your webhook URLs:**
+1. Open `script.js` and set an `ENCRYPTION_KEY`
+2. Open `index.html` in your browser and open the console (F12)
+3. Execute: `encryptWebhookHelper('your-webhook-url', 'your-encryption-key')`
+4. Copy the output to `script.js`
 
-Zie [SECURITY.md](SECURITY.md) voor gedetailleerde instructies.
+See [SECURITY.md](SECURITY.md) for detailed instructions.
 
-### 2. Configureer n8n Webhooks
+### 2. Configure n8n Webhooks
 
 1. **Registration Webhook**:
    - Method: `POST`
    - Path: `hours-registration`
-   - Doel: Ontvangt en slaat geregistreerde uren op
-   - Verwachte data: `id`, `Date`, `Week Number`, `Start Time`, `End Time`, `Break in minutes`, `Notes`
+   - Purpose: Receives and stores registered hours
+   - Expected data: `id`, `Date`, `Week Number`, `Start Time`, `End Time`, `Break in minutes`, `Notes`
    - Return: 200 OK
 
 2. **Report Webhook**:
    - Method: `POST`
    - Path: `send-weekly-report`
-   - Doel: Verstuurt wekelijkse rapportage email
+   - Purpose: Sends weekly report email
    - Return: 200 OK
 
-3. **Get Hours Webhook** (nieuw voor multi-device sync):
-   - Method: `POST`
-   - Path: `get-hours`
-   - Doel: Haalt geregistreerde uren op voor synchronisatie tussen apparaten
-   - Verwachte data: `startDate`, `endDate` (YYYY-MM-DD formaat)
-   - Return: JSON array met alle uren in de opgegeven periode
-   - Return format: `[{"id": "...", "Date": "2025-12-09", "Week Number": 50, ...}, ...]`
+### 3. Hours Helper (Local Data Management)
 
-### 3. Multi-Device Synchronisatie
+For manually managing your localStorage data:
 
-De site ondersteunt nu automatische synchronisatie tussen apparaten:
+- **Location**: Open `hours-helper.html` in your browser
+- **Functionality**:
+  - Manually add hours to localStorage
+  - View and delete existing hours
+  - Debug information for troubleshooting
+- **Note**: Hours added via the helper are **not** sent to n8n
+- **Use case**: Useful for correcting local data or testing the week overview functionality
 
-- **Automatisch**: Bij het laden van de pagina worden uren opgehaald van n8n
-- **Handmatig**: Klik op de 🔄 knop in het weekoverzicht voor direct synchroniseren
-- **Duplicaatpreventie**: Elk uur heeft een unieke ID om duplicaten te voorkomen
-- **Hybride opslag**: Data wordt zowel lokaal (localStorage) als remote (n8n) opgeslagen
+### 4. Usage
 
-**n8n implementatie tip**: Sla alle geregistreerde uren op in een database of Google Sheets met het `id` veld als primaire sleutel, zodat updates correct worden verwerkt.
-
-### 4. Gebruik
-
-1. Open `login.html` in je browser
-2. Log in met je wachtwoord
-3. Registreer je uren
-4. Verstuur wekelijkse rapporten
+1. Open `login.html` in your browser
+2. Log in with your password
+3. Register your hours
+4. Send weekly reports
 
 ## File Structure
 
-- `login.html`: Login pagina met wachtwoordbeveiliging
-- `index.html`: Hoofdpagina voor urenregistratie
-- `auth.js`: Authenticatie en session management
-- `script.js`: Formulier logica en API calls naar n8n
-- `style.css`: Styling (Glassmorphism, animaties, responsive design)
-- `SECURITY.md`: Gedetailleerde beveiligingsconfiguratie
-- `README.md`: Deze documentatie
+- `login.html`: Login page with password protection
+- `index.html`: Main page for hours registration
+- `hours-helper.html`: Helper tool for manually managing localStorage
+- `auth.js`: Authentication and session management
+- `script.js`: Form logic and API calls to n8n
+- `style.css`: Styling (Glassmorphism, animations, responsive design)
+- `SECURITY.md`: Detailed security configuration
+- `README.md`: This documentation
 
-## Aanbevolen Extra Beveiligingsmaatregelen
+## Recommended Additional Security Measures
 
-Voor productiegebruik raden we aan:
+For production use, we recommend:
 
-1. **HTTPS verplicht** - Host altijd via HTTPS
-2. **CSP Headers** - Configureer Content Security Policy headers
-3. **n8n authenticatie** - Voeg header authentication toe aan je n8n webhooks
-4. **Rate limiting** - Beperk aantal requests per IP
-5. **Backup** - Maak regelmatig backups van je n8n data
+1. **HTTPS required** - Always host via HTTPS
+2. **CSP Headers** - Configure Content Security Policy headers
+3. **n8n authentication** - Add header authentication to your n8n webhooks
+4. **Rate limiting** - Limit number of requests per IP
+5. **Backup** - Regularly backup your n8n data
 
-Zie [SECURITY.md](SECURITY.md) voor implementatie details.
+See [SECURITY.md](SECURITY.md) for implementation details.
 
 ## Screenshots
 
