@@ -89,3 +89,6 @@ See [SECURITY.md](SECURITY.md) for implementation details.
 ## Screenshots
 
 <img width="1042" height="855" alt="Screenshot 2025-12-09 183641" src="https://github.com/user-attachments/assets/cf4b343b-e681-4321-8e8a-b22212485ce7" />
+<br>
+<img width="1348" height="1986" alt="screenshot2" src="https://github.com/user-attachments/assets/7951363f-9ff1-41fa-b695-a3b4b6839549" />
+
