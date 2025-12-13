@@ -7,12 +7,12 @@
 
 const CONFIG = {
     // Your encryption key (change this to a random string)
-    ENCRYPTION_KEY: '87BFpGKAp_bvZdLNf4x3HqCM8S5ybgoR',
+    ENCRYPTION_KEY: 'vC1e5zKnQqZM01iHX22mb2dFTLb9M8Gj',
 
     // Encrypted webhook URLs (use the helper tool to generate these)
-    REGISTRATION_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TQMoASI=',
-    REPORT_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRs7DSA=',
-    GET_HOURS_WEBHOOK_ENC: 'OxAuBAMMWVYbelpFOho5SUUFd1xxBUkYGEcoAWAAAFwmAHUDFVQeFhopGwwsHGIQGkc2HA==' // Will be replaced after n8n deployment
+    REGISTRATION_WEBHOOK_ENC: 'HjdFFUZAZEE/STRjQ0MfeWgFAV5XAUouJzgFS2NbKwUDJx4SUBgjAT4adThCVAc=',
+    REPORT_WEBHOOK_ENC: 'HjdFFUZAZEE/STRjQ0MfeWgFAV5XAUouJzgFS2NbKwUDJx4SUBgjAT4adSBRWAU=',
+    GET_HOURS_WEBHOOK_ENC: 'HjdFFUZAZEE/STRjQ0MfeWgFAV5XAUouJzgFS2NbKwUDJx4SUBgjAT4adSpVRUQgN0dAHg==' // Will be replaced after n8n deployment
 };
 
 // Decrypt webhook URLs
