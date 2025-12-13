@@ -238,6 +238,11 @@
             <input type="text" id="reportWebhook" placeholder="https://n8n.example.com/webhook/send-weekly-report">
         </div>
 
+        <div class="input-group">
+            <label for="getHoursWebhook">4. Plak je GET HOURS Webhook URL:</label>
+            <input type="text" id="getHoursWebhook" placeholder="https://n8n.example.com/webhook/get-hours">
+        </div>
+
         <button onclick="encryptWebhooks()">🔒 Versleutel Webhooks</button>
 
         <div class="result" id="result">
@@ -264,6 +269,13 @@
                 <div class="success-msg" id="repSuccess">✅ Gekopieerd!</div>
             </div>
 
+            <div class="output-item">
+                <div class="output-label">GET_HOURS_WEBHOOK_ENC:</div>
+                <div class="output-value" id="getHoursOutput"></div>
+                <button class="copy-btn" onclick="copyToClipboard('getHoursOutput', 'getHoursSuccess')">📋 Kopieer</button>
+                <div class="success-msg" id="getHoursSuccess">✅ Gekopieerd!</div>
+            </div>
+
             <div class="info" style="margin-top: 1.5rem; margin-bottom: 0;">
                 <strong>Volgende stappen:</strong><br>
                 1. Open <code>script.js</code> in een teksteditor<br>
@@ -273,7 +285,8 @@
 <span class="code-keyword">const</span> CONFIG = {
     ENCRYPTION_KEY: <span class="code-string">'[plak ENCRYPTION_KEY hier]'</span>,
     REGISTRATION_WEBHOOK_ENC: <span class="code-string">'[plak REGISTRATION_WEBHOOK_ENC hier]'</span>,
-    REPORT_WEBHOOK_ENC: <span class="code-string">'[plak REPORT_WEBHOOK_ENC hier]'</span>
+    REPORT_WEBHOOK_ENC: <span class="code-string">'[plak REPORT_WEBHOOK_ENC hier]'</span>,
+    GET_HOURS_WEBHOOK_ENC: <span class="code-string">'[plak GET_HOURS_WEBHOOK_ENC hier]'</span>
 };
                 </div>
                 4. Sla <code>script.js</code> op
@@ -303,6 +316,7 @@
             const key = document.getElementById('encryptionKey').value.trim();
             const regWebhook = document.getElementById('registrationWebhook').value.trim();
             const repWebhook = document.getElementById('reportWebhook').value.trim();
+            const getHoursWebhook = document.getElementById('getHoursWebhook').value.trim();
 
             // Validation
             if (!key) {
@@ -326,14 +340,21 @@
                 return;
             }
 
+            if (!getHoursWebhook || !getHoursWebhook.startsWith('http')) {
+                alert('Voer een geldige GET hours webhook URL in (moet beginnen met http)!');
+                return;
+            }
+
             // Encrypt
             const encryptedReg = encryptString(regWebhook, key);
             const encryptedRep = encryptString(repWebhook, key);
+            const encryptedGetHours = encryptString(getHoursWebhook, key);
 
             // Display results
             document.getElementById('keyOutput').textContent = key;
             document.getElementById('regOutput').textContent = encryptedReg;
             document.getElementById('repOutput').textContent = encryptedRep;
+            document.getElementById('getHoursOutput').textContent = encryptedGetHours;
 
             document.getElementById('result').classList.add('show');
 
