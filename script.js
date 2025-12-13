@@ -11,7 +11,8 @@ const CONFIG = {
 
     // Encrypted webhook URLs (use the helper tool to generate these)
     REGISTRATION_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TQMoASI=',
-    REPORT_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRs7DSA='
+    REPORT_WEBHOOK_ENC: 'UEM2NgN9ZG4eZwxYKRY6f1YDSwB9Qm0lSydSC0wEAz1NU20xFSUjLh80TRs7DSA=',
+    GET_HOURS_WEBHOOK_ENC: 'OxAuBAMMWVYbelpFOho5SUUFd1xxBUkYGEcoAWAAAFwmAHUDFVQeFhopGwwsHGIQGkc2HA==' // Will be replaced after n8n deployment
 };
 
 // Decrypt webhook URLs
@@ -35,7 +36,8 @@ function decryptWebhook(encrypted, key) {
 function getWebhooks() {
     return {
         registration: decryptWebhook(CONFIG.REGISTRATION_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY),
-        report: decryptWebhook(CONFIG.REPORT_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY)
+        report: decryptWebhook(CONFIG.REPORT_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY),
+        getHours: decryptWebhook(CONFIG.GET_HOURS_WEBHOOK_ENC, CONFIG.ENCRYPTION_KEY)
     };
 }
 
@@ -91,8 +93,10 @@ function initializeForm() {
     document.getElementById('currentWeekDisplay').textContent = getWeekNumber(now);
     updateWeekRange(now);
 
-    // Initialize week overview
-    updateWeekOverview();
+    // Initialize week overview (async, non-blocking)
+    updateWeekOverview().catch(error => {
+        console.error('Failed to load week overview:', error);
+    });
 }
 
 function updateWeekRange(date) {
@@ -213,15 +217,14 @@ async function handleRegistration(formData) {
         });
 
         if (response.ok) {
-            // Save to localStorage with the same ID
-            saveHoursToLocalStorage(data, entryId);
-
             showToast('Uren succesvol geregistreerd!', 'success');
             document.getElementById('hoursForm').reset();
             initializeForm(); // Reset date and week
 
-            // Update week overview
-            updateWeekOverview();
+            // Update week overview (async, non-blocking)
+            updateWeekOverview().catch(error => {
+                console.error('Failed to refresh week overview:', error);
+            });
         } else {
             throw new Error('Server returned ' + response.status);
         }
@@ -309,20 +312,11 @@ function generateUniqueId() {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function saveHoursToLocalStorage(data, id = null) {
-    const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
-
-    // Add timestamp and unique ID for record keeping and sync
-    const record = {
-        ...data,
-        id: id || generateUniqueId(),
-        timestamp: new Date().toISOString()
-    };
-
-    hours.push(record);
-    localStorage.setItem('registeredHours', JSON.stringify(hours));
-
-    return record.id;
+function formatDateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function getWeekBoundaries(date) {
@@ -340,14 +334,45 @@ function getWeekBoundaries(date) {
     return { firstDay, lastDay };
 }
 
-function getWeekHours() {
-    const hours = JSON.parse(localStorage.getItem('registeredHours') || '[]');
-    const { firstDay, lastDay } = getWeekBoundaries(new Date());
+async function getWeekHours() {
+    try {
+        const { firstDay, lastDay } = getWeekBoundaries(new Date());
 
-    return hours.filter(entry => {
-        const entryDate = new Date(entry.Date);
-        return entryDate >= firstDay && entryDate <= lastDay;
-    });
+        const startDate = formatDateToISO(firstDay);
+        const endDate = formatDateToISO(lastDay);
+
+        const webhooks = getWebhooks();
+        const response = await fetch(webhooks.getHours, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ startDate, endDate })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const hours = await response.json();
+
+        // Transform n8n format to expected format
+        return hours.map(entry => ({
+            'Date': entry.date,
+            'Start Time': entry.starttime,
+            'End Time': entry.endtime,
+            'Break in minutes': parseInt(entry.break_in_minutes) || 0,
+            'Notes': entry.notes || '',
+            'Week Number': parseInt(entry.weeknumber),
+            id: entry.id || generateUniqueId(),
+            timestamp: entry.timestamp || new Date().toISOString()
+        }));
+
+    } catch (error) {
+        console.error('Error fetching week hours from n8n:', error);
+        showToast('Kon uren niet ophalen. Probeer opnieuw.', 'error');
+        return [];
+    }
 }
 
 function calculateTotalHours(entries) {
@@ -371,54 +396,67 @@ function calculateTotalHours(entries) {
     return { hours, minutes, totalMinutes };
 }
 
-function updateWeekOverview() {
-    const weekHours = getWeekHours();
-    const { hours, minutes } = calculateTotalHours(weekHours);
-
-    // Update total hours display
+async function updateWeekOverview() {
+    const overviewList = document.getElementById('weekOverviewList');
     const totalElement = document.getElementById('weekTotalHours');
-    if (totalElement) {
-        totalElement.textContent = `${hours}u ${minutes}m`;
+
+    // Show loading state
+    if (overviewList) {
+        overviewList.innerHTML = '<li class="loading">⏳ Uren ophalen...</li>';
     }
 
-    // Update day-by-day breakdown
-    const overviewList = document.getElementById('weekOverviewList');
-    if (overviewList) {
-        if (weekHours.length === 0) {
-            overviewList.innerHTML = '<li class="no-hours">Nog geen uren geregistreerd deze week</li>';
-        } else {
-            // Group by date
-            const groupedByDate = {};
-            weekHours.forEach(entry => {
-                const date = entry.Date;
-                if (!groupedByDate[date]) {
-                    groupedByDate[date] = [];
-                }
-                groupedByDate[date].push(entry);
-            });
+    try {
+        const weekHours = await getWeekHours();
+        const { hours, minutes } = calculateTotalHours(weekHours);
 
-            // Sort by date (oldest first - Monday at top)
-            const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
-                return new Date(a) - new Date(b);
-            });
+        // Update total hours display
+        if (totalElement) {
+            totalElement.textContent = `${hours}u ${minutes}m`;
+        }
 
-            overviewList.innerHTML = sortedDates.map(date => {
-                const entries = groupedByDate[date];
-                const { hours: dayHours, minutes: dayMinutes } = calculateTotalHours(entries);
+        // Update day-by-day breakdown
+        if (overviewList) {
+            if (weekHours.length === 0) {
+                overviewList.innerHTML = '<li class="no-hours">Nog geen uren geregistreerd deze week</li>';
+            } else {
+                // Group by date
+                const groupedByDate = {};
+                weekHours.forEach(entry => {
+                    const date = entry.Date;
+                    if (!groupedByDate[date]) {
+                        groupedByDate[date] = [];
+                    }
+                    groupedByDate[date].push(entry);
+                });
 
-                // Format date to Dutch
-                const dateObj = new Date(date);
-                const dayName = dateObj.toLocaleDateString('nl-NL', { weekday: 'short' });
-                const dayNumber = dateObj.getDate();
-                const month = dateObj.toLocaleDateString('nl-NL', { month: 'short' });
+                // Sort by date (oldest first - Monday at top)
+                const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                    return new Date(a) - new Date(b);
+                });
 
-                return `
-                    <li class="overview-day">
-                        <span class="day-label">${dayName} ${dayNumber} ${month}</span>
-                        <span class="day-hours">${dayHours}u ${dayMinutes}m</span>
-                    </li>
-                `;
-            }).join('');
+                overviewList.innerHTML = sortedDates.map(date => {
+                    const entries = groupedByDate[date];
+                    const { hours: dayHours, minutes: dayMinutes } = calculateTotalHours(entries);
+
+                    // Format date to Dutch
+                    const dateObj = new Date(date);
+                    const dayName = dateObj.toLocaleDateString('nl-NL', { weekday: 'short' });
+                    const dayNumber = dateObj.getDate();
+                    const month = dateObj.toLocaleDateString('nl-NL', { month: 'short' });
+
+                    return `
+                        <li class="overview-day">
+                            <span class="day-label">${dayName} ${dayNumber} ${month}</span>
+                            <span class="day-hours">${dayHours}u ${dayMinutes}m</span>
+                        </li>
+                    `;
+                }).join('');
+            }
+        }
+    } catch (error) {
+        console.error('Error updating week overview:', error);
+        if (overviewList) {
+            overviewList.innerHTML = '<li class="error">❌ Fout bij ophalen uren</li>';
         }
     }
 }

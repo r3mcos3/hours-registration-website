@@ -641,3 +641,28 @@ button {
         padding: 0.875rem 1.25rem;
     }
 }
+
+/* Loading and error states for week overview */
+.loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.error {
+    padding: 2rem;
+    text-align: center;
+    color: var(--error);
+    font-weight: 600;
+}
