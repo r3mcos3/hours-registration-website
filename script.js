@@ -369,8 +369,7 @@ async function getWeekHours() {
         }));
 
     } catch (error) {
-        console.error('Error fetching week hours from n8n:', error);
-        showToast('Kon uren niet ophalen. Probeer opnieuw.', 'error');
+        console.warn('Could not fetch hours from n8n, showing empty list:', error);
         return [];
     }
 }
@@ -454,9 +453,12 @@ async function updateWeekOverview() {
             }
         }
     } catch (error) {
-        console.error('Error updating week overview:', error);
+        console.warn('Error updating week overview:', error);
         if (overviewList) {
-            overviewList.innerHTML = '<li class="error">❌ Fout bij ophalen uren</li>';
+            overviewList.innerHTML = '<li class="no-hours">Nog geen uren geregistreerd deze week</li>';
+        }
+        if (totalElement) {
+            totalElement.textContent = '0u 0m';
         }
     }
 }
